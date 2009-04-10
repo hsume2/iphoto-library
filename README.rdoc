@@ -114,7 +114,7 @@ Try this safer Apache configuration.
 	</VirtualHost>
 	
 === Known Issues
-* rake iphoto:update task is only incremental on new events and photos. Changes to event names and photo captions are not synchronized. More work to be done here.
+* rake iphoto:update task doesn't auto-delete photos deleted from your iPhoto Library
 * Currently only supports one iPhoto Library
 * What about loading assets into the database as well?
 * Or other forms of storage?
