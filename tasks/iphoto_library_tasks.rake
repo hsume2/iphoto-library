@@ -17,11 +17,32 @@ namespace :iphoto do
     @rolls = result['List of Rolls']
     @list = result['Master Image List']
 
-    @rolls.each do |roll|
-      roll_model = Roll.find(roll['RollID'])
-      if roll_model.nil?
-        created = create_roll(roll)
+    # First checks if any rolls or media have been deleted, pushes those changes
+    existing_ids = Roll.find(:all, :select => 'id').map { |m| m.id }
+    current_ids = @rolls.map { |r| r['RollID'] }
+    nonexistent_ids = existing_ids - current_ids
 
+    unless nonexistent_ids.empty?
+      puts "Deleting rolls with ids: #{nonexistent_ids.inspect}"
+      Roll.delete(nonexistent_ids)
+    end
+
+    existing_ids = Media.find(:all, :select => 'id').map { |m| m.id }
+    current_ids = @list.map { |k, v| k.to_i }
+    nonexistent_ids = existing_ids - current_ids
+
+    unless nonexistent_ids.empty?
+      puts "Deleting media with ids: #{nonexistent_ids.inspect}"
+      Media.delete(nonexistent_ids)
+    end
+
+    # Next create new rolls or media / update existing ones
+    
+    @rolls.each do |roll|
+      begin
+        roll_model = Roll.find(roll['RollID'])
+      rescue ActiveRecord::RecordNotFound
+        created = create_roll(roll)
         puts "Created #{created}"
       else
         update_roll(roll_model, roll)
@@ -29,19 +50,23 @@ namespace :iphoto do
     end
 
     @list.each_pair do |key, value|
-      media_model = Media.find(key)
-      if media_model.nil?
-        case value['MediaType']
-        when 'Image'
-          created = create_media('Photo', key, value)
-        when 'Movie'
-          created = create_media('Movie', key, value)
+      begin
+        media_model = Media.find(key)
+      rescue ActiveRecord::RecordNotFound
+        if media_model.nil?
+          case value['MediaType']
+          when 'Image'
+            created = create_media('Photo', key, value)
+          when 'Movie'
+            created = create_media('Movie', key, value)
+          end
+          puts "Created #{created}"
         end
-        puts "Created #{created}"
       else
         update_media(media_model, value)
       end
     end
+    
   end
 
   desc "Load iPhoto library AlbumData.xml into database"
