@@ -1,0 +1,4 @@
+Usage: script/generate iphoto_library LibraryPath Server
+
+Description:
+	Creates iphoto.yml in config/.

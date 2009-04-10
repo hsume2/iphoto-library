@@ -1,0 +1,14 @@
+# Defines iPhoto Libraries and where the photos will be served
+# TODO multiple libraries?
+
+development: 
+  library: <%= library %>
+  server: <%= server %>
+  
+production: 
+  library: <%= library %>
+  server: <%= server %>
+  
+test: 
+  library: <%= library %>
+  server: <%= server %>

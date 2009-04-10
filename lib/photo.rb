@@ -1,0 +1,2 @@
+class Photo < Media
+end

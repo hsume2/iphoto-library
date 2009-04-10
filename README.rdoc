@@ -1,0 +1,121 @@
+= iPhoto Library
+This plugin provides a way to use iPhoto to manage photos and videos for your Rails application.
+
+=== Supported
+* iPhoto '08 and '09
+* Events (Rolls)
+* Photos
+* Videos
+
+== Installation
+	script/plugin install git://github.com/hsume2/iphoto-library.git
+	
+Requires plist gem
+	sudo gem install plist
+
+== Usage
+=== Generators
+Use
+
+	script/generate iphoto_library LibraryPath Server
+
+to create the configuration and migrations necessary
+
+=== Rake tasks
+Resets iPhoto data in database
+	rake iphoto:reset
+Load iPhoto library AlbumData.xml into database
+	rake iphoto:load
+Updates iPhoto data incrementally into database
+	rake iphoto:update
+	
+=== Models
+Thumbnail paths and image paths are automatically swizzled to the server specified in iphoto.yml
+	photo = Photo.first
+	photo.thumb_path # Thumbnail used in iPhoto
+	photo.image_path # Image stored in iPhoto Library (could be in Modified, Originals, Data)
+	
+	movie = Movie.first
+	movie.thumb_path # Auto-generated thumbnail used in iPhoto
+	movie.image_path # The video itself
+	movie.movie_path # same as image_path
+	
+=== Configuration
+Anywhere in your rails app you can call
+	IphotoLibrary.path
+	IphotoLibrary.server
+	IphotoLibrary.albumdata_path
+to retrieve the settings stored in iphoto.yml
+	
+=== Tips
+
+* Be sure to close iPhoto, before running tasks, so changes to the library are written to file (AlbumData.xml)
+
+== Demo Usage
+Use Apache to staticly serve the photos straight from your iPhoto Library. Add something like this to your virtual host conf.
+
+	<VirtualHost *:80>
+		ServerAdmin admin@yourdomain.com
+		DocumentRoot "/Users/YourUser/Pictures/iPhoto Library/" # <- Your iPhoto Library
+		ServerName static.yourdomain.com
+
+		<Directory "/Users/YourUser/Pictures/iPhoto Library/">
+			# No Options Indexes, we don't want anyone/anything crawling around
+			AllowOverride All
+			Order deny,allow
+			Allow from all
+		</Directory>
+	</VirtualHost>
+	
+Then, in your rails app root, execute
+
+	script/generate iphoto_library /Users/YourUser/Pictures/iPhoto\ Library/ http://static.yourdomain.com
+	
+to create the configuration file necessary, and
+	
+	rake db:migrate
+	
+to create the tables, and
+
+	rake iphoto:load
+	
+to load events (rolls), photos, and videos into the database.
+	
+=== More Restrictive Configuration
+Try this safer Apache configuration.
+	<VirtualHost *:80>
+		ServerAdmin admin@yourdomain.com
+		DocumentRoot "/Library/WebServer/Documents" # <- Doesn't matter, maybe try a 404 page?
+		ServerName static.yourdomain.com
+	
+		Alias /Data "/Users/Family/Pictures/iPhoto Library/Data"
+
+		<Directory "/Users/Family/Pictures/iPhoto Library/Data">
+			AllowOverride All
+			Order deny,allow
+			Allow from all
+		</Directory>
+
+		Alias /Modified "/Users/Family/Pictures/iPhoto Library/Modified"
+
+		<Directory "/Users/Family/Pictures/iPhoto Library/Modified">
+			AllowOverride All
+			Order deny,allow
+			Allow from all
+		</Directory>
+
+		Alias /Originals "/Users/Family/Pictures/iPhoto Library/Originals"
+
+		<Directory "/Users/Family/Pictures/iPhoto Library/Originals">
+			AllowOverride All
+			Order deny,allow
+			Allow from all
+		</Directory>
+	</VirtualHost>
+	
+=== Known Issues
+* rake iphoto:update task is only incremental on new events and photos. Changes to event names and photo captions are not synchronized. More work to be done here.
+* Currently only supports one iPhoto Library
+* What about loading assets into the database as well?
+
+Copyright (c) 2009 Henry Hsu, released under the MIT license
