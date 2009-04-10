@@ -117,5 +117,6 @@ Try this safer Apache configuration.
 * rake iphoto:update task is only incremental on new events and photos. Changes to event names and photo captions are not synchronized. More work to be done here.
 * Currently only supports one iPhoto Library
 * What about loading assets into the database as well?
+* Or other forms of storage?
 
 Copyright (c) 2009 Henry Hsu, released under the MIT license
