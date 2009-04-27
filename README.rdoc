@@ -10,8 +10,10 @@ This plugin provides a way to use iPhoto to manage photos and videos for your Ra
 == Installation
 	script/plugin install git://github.com/hsume2/iphoto-library.git
 	
-Requires plist gem
-	sudo gem install plist
+* Requires plist gem
+	  sudo gem install plist
+	
+* Requires mini_magick gem for on-demand thumbnails
 
 == Usage
 === Generators
