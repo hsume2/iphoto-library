@@ -31,6 +31,12 @@ Load iPhoto library AlbumData.xml into database
 Updates iPhoto data incrementally into database
 	rake iphoto:update
 	
+=== On-Demand Thumbnails
+You can create thumbnails on demand in RAILS_ROOT/public/photos.
+  photo = Photo.find(3)
+  photo.on_demand(720,720) # /photos/3/720x720.jpg
+Creates a 720 by 720 thumbnail the first time the method is called. Subsequent calls will return the path to previously created thumbnails.
+	
 === Models
 Thumbnail paths and image paths are automatically swizzled to the server specified in iphoto.yml
 	photo = Photo.first
