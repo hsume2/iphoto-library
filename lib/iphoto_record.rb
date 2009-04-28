@@ -20,7 +20,7 @@ module IphotoRecord
       
       self.attributes = update_attribute_hash
       
-      if !self.changes.blank?
+      if !self.changes.blank? # TODO meta_mod_date voodoo happening here
         self.save
         true
       else

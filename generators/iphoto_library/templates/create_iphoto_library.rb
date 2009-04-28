@@ -14,6 +14,7 @@ class CreateIphotoLibrary < ActiveRecord::Migration
       t.string :image_path
       t.string :thumb_path
       t.string :image_type
+      t.text :keywords
 
       t.timestamps
     end

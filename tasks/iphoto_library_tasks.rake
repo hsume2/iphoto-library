@@ -5,6 +5,7 @@ namespace :iphoto do
     Media.delete_all
     puts "Destroying #{Roll.count} roll entries"
     Roll.delete_all
+    Keyword.delete_all
   end
 
   desc "Updates iPhoto data incrementally into database"
@@ -15,6 +16,8 @@ namespace :iphoto do
 
     @rolls = result['List of Rolls']
     @list = result['Master Image List']
+    @keywords = result['List of Keywords']
+    Keyword.delete_all
 
     # First checks if any rolls or media have been deleted, pushes those changes
     existing_ids = Roll.find(:all, :select => 'id').map { |m| m.id }
@@ -68,6 +71,12 @@ namespace :iphoto do
       end
     end
     
+    @keywords.each do |key, name|
+      Keyword.create(:name => name) do |k|
+        k.id = key
+      end
+    end
+    
     puts "Updated #{updated_roll_count} roll entries"
     puts "Updated #{update_media_count} media entries"
   end
@@ -94,6 +103,12 @@ namespace :iphoto do
         media_count += 1 if Photo.from_plist(key, media)
       when 'Movie'
         media_count += 1 if Movie.from_plist(key, media)
+      end
+    end
+    
+    @keywords.each do |key, name|
+      Keyword.create(:name => name) do |k|
+        k.id = key
       end
     end
     
