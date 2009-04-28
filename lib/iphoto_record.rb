@@ -3,6 +3,30 @@ module IphotoRecord
   
   def self.included(base)
     base.extend(ClassMethods)
+    base.send(:include, IphotoRecord::InstanceMethods)
+  end
+  
+  module InstanceMethods
+    def update_from_plist(plist)
+      update_attribute_hash = {}
+      
+      self.class.mapping.each_pair do |plist_key, record_attribute|
+        if self.class.proc.include?(record_attribute)
+          update_attribute_hash[record_attribute] = self.class.proc[record_attribute].call(plist[plist_key])
+        else
+          update_attribute_hash[record_attribute] = plist[plist_key]
+        end
+      end
+      
+      self.attributes = update_attribute_hash
+      
+      if !self.changes.blank?
+        self.save
+        true
+      else
+        false
+      end
+    end
   end
   
   module ClassMethods

@@ -9,7 +9,6 @@ namespace :iphoto do
 
   desc "Updates iPhoto data incrementally into database"
   task(:update => :environment) do
-    @@library = IphotoLibrary.path
     albumdata = IphotoLibrary.albumdata_path
 
     result = Plist::parse_xml(albumdata)
@@ -35,43 +34,46 @@ namespace :iphoto do
       puts "Deleting media with ids: #{nonexistent_ids.inspect}"
       Media.delete(nonexistent_ids)
     end
-
-    # Next create new rolls or media / update existing ones
     
+    # Next create new rolls or media / update existing ones
+
+    updated_roll_count = 0
     @rolls.each do |roll|
       begin
         roll_model = Roll.find(roll['RollID'])
       rescue ActiveRecord::RecordNotFound
-        created = create_roll(roll)
+        created = Roll.from_plist(roll['RollID'], roll)
         puts "Created #{created}"
       else
-        update_roll(roll_model, roll)
+        updated_roll_count += 1 if roll_model.update_from_plist(roll)
       end
     end
-
-    @list.each_pair do |key, value|
+    
+    update_media_count = 0
+    @list.each_pair do |key, media|
       begin
         media_model = Media.find(key)
       rescue ActiveRecord::RecordNotFound
         if media_model.nil?
-          case value['MediaType']
+          case media['MediaType']
           when 'Image'
-            created = create_media('Photo', key, value)
+            created = Photo.from_plist(key, media)
           when 'Movie'
-            created = create_media('Movie', key, value)
+            created = Movie.from_plist(key, media)
           end
           puts "Created #{created}"
         end
       else
-        update_media(media_model, value)
+        update_media_count += 1 if media_model.update_from_plist(media)
       end
     end
     
+    puts "Updated #{updated_roll_count} roll entries"
+    puts "Updated #{update_media_count} media entries"
   end
 
   desc "Load iPhoto library AlbumData.xml into database"
   task(:load => :reset) do
-    @@library = IphotoLibrary.path
     albumdata = IphotoLibrary.albumdata_path
 
     result = Plist::parse_xml(albumdata)
@@ -97,108 +99,5 @@ namespace :iphoto do
     
     puts "Created #{roll_count} roll entries"
     puts "Created #{media_count} media entries"
-  end
-
-  private
-  
-  @@library = nil
-  
-  def create_roll(plist_roll)
-    return Roll.create(roll_hash(plist_roll)) do |r|
-      r.id = plist_roll['RollID']
-    end
-  end
-  
-  def roll_hash(plist_roll)
-    {
-      :name => plist_roll['RollName'],
-      :date => Time.at(plist_roll['RollDateAsTimerInterval'].to_f + 978307200),
-      :key_photo_id => plist_roll['KeyPhotoKey'],
-      :photo_count => plist_roll['PhotoCount'],
-      :key_list => plist_roll['KeyList']
-    }
-  end
-  
-  def update_roll(record, plist_roll)
-    temp_hash = roll_hash(plist_roll)
-    
-    # Values undergo changes when the record is built so we can't just use the temp_hash
-    current_roll = Roll.new(temp_hash)
-    current_roll_attributes = current_roll.attributes
-    
-    # Rolls are created with roll_hash, so only keys in roll_hash will be checked
-    # for modifications
-    
-    current_roll_attributes.delete_if { |key, value| !temp_hash.include?(key.to_sym) }
-    
-    # Loop variables
-    record_attributes = record.attributes
-    modified_attributes = Hash.new
-    
-    current_roll_attributes.each_pair do |key, value|
-      unless record_attributes[key] == value # Checks for changes
-        modified_attributes[key] = value # Stores changes
-      end
-    end
-    
-    # Updates if needed
-    if !modified_attributes.blank? and record.update_attributes(modified_attributes)
-      puts "Updated #{record} with #{modified_attributes.inspect}"
-    end
-  end
-
-  def create_media(model, key, value)
-    return_model = nil
-    eval "return_model = #{model}.create(media_hash(value)) do |image|
-      image.id = key
-      image.GUID = value['GUID']
-    end", binding
-    return return_model
-  end
-  
-  def media_hash(plist)
-    {
-      :caption => plist['Caption'],
-      :comment => plist['Comment'],
-      :aspect => plist['Aspect Ratio'],
-      :rating => plist['Rating'],
-      :roll_id => plist['Roll'],
-      :date => Time.at(plist['DateAsTimerInterval'].to_f + 978307200),
-      :mod_date => Time.at(plist['ModDateAsTimerInterval'].to_f + 978307200),
-      :meta_mod_date => Time.at(plist['MetaModDateAsTimerInterval'].to_f + 978307200),
-      :image_path => plist['ImagePath'].sub(@@library, ''),
-      :thumb_path => plist['ThumbPath'].sub(@@library, ''),
-      :image_type => plist['ImageType']
-    }
-  end
-  
-  def update_media(record, plist)
-    temp_hash = media_hash(plist)
-
-    # Values undergo changes when the record is built so we can't just use the temp_hash
-    current_media = Media.new(temp_hash)
-    current_media_attributes = current_media.attributes
-
-    # Media are created with media_hash, so only keys in media_hash will be checked
-    # for modifications
-
-    current_media_attributes.delete_if { |key, value| !temp_hash.include?(key.to_sym) }
-
-    # Loop variables
-    record_attributes = record.attributes
-    modified_attributes = Hash.new
-
-    current_media_attributes.each_pair do |key, value|
-      unless key == "meta_mod_date" or key == "aspect" # Currently ignore these two
-        unless record_attributes[key] == value # Checks for changes
-          modified_attributes[key] = value # Stores changes
-        end
-      end
-    end
-    
-    # Updates if needed
-    if !modified_attributes.blank? and record.update_attributes(modified_attributes)
-       puts "Updated #{record} with #{modified_attributes.inspect}"
-     end
   end
 end
