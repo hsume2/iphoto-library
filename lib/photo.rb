@@ -1,4 +1,5 @@
 class Photo < Media
+  
   def on_demand(width, height)
     dims = "#{width}x#{height}"
 

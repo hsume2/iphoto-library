@@ -78,26 +78,24 @@ namespace :iphoto do
 
     @rolls = result['List of Rolls']
     @list = result['Master Image List']
-
+    @keywords = result['List of Keywords']
+    
     roll_count = 0
     @rolls.each do |roll|
-      create_roll(roll)
-      roll_count += 1
+      roll_count += 1 if Roll.from_plist(roll['RollID'], roll)
+    end
+
+    media_count = 0
+    @list.each_pair do |key, media|
+      case media['MediaType']
+      when 'Image'
+        media_count += 1 if Photo.from_plist(key, media)
+      when 'Movie'
+        media_count += 1 if Movie.from_plist(key, media)
+      end
     end
     
     puts "Created #{roll_count} roll entries"
-
-    media_count = 0
-    @list.each_pair do |key, value|
-      case value['MediaType']
-      when 'Image'
-        created = create_media('Photo', key, value)
-      when 'Movie'
-        created = create_media('Movie', key, value)
-      end
-      media_count += 1
-    end
-    
     puts "Created #{media_count} media entries"
   end
 
