@@ -1,5 +1,12 @@
 class CreateIphotoLibrary < ActiveRecord::Migration
   def self.up
+    create_table :iphoto_libraries do |t|
+      t.string :name
+      t.integer :size
+      t.datetime :modified_at
+
+      t.timestamps
+    end
     create_table :iphoto_medias do |t|
       t.string :type
       t.string :caption
@@ -15,6 +22,7 @@ class CreateIphotoLibrary < ActiveRecord::Migration
       t.string :thumb_path
       t.string :image_type
       t.text :keywords
+      t.references :library
 
       t.timestamps
     end
@@ -24,17 +32,20 @@ class CreateIphotoLibrary < ActiveRecord::Migration
       t.references :key_photo
       t.integer :photo_count
       t.text :key_list
+      t.references :library
 
       t.timestamps
     end
     create_table :iphoto_keywords do |t|
       t.string :name
+      t.references :library
 
       t.timestamps
     end
   end
 
   def self.down
+    drop_table :iphoto_libraries
     drop_table :iphoto_medias
     drop_table :iphoto_rolls
     drop_table :iphoto_keywords
