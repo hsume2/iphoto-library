@@ -3,7 +3,6 @@ class CreateIphotoLibrary < ActiveRecord::Migration
     create_table :iphoto_libraries do |t|
       t.string :name
       t.integer :size
-      t.datetime :modified_at
 
       t.timestamps
     end
@@ -22,7 +21,6 @@ class CreateIphotoLibrary < ActiveRecord::Migration
       t.string :thumb_path
       t.string :image_type
       t.text :keywords
-      t.references :library
 
       t.timestamps
     end
