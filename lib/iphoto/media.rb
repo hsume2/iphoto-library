@@ -10,23 +10,23 @@ module Iphoto
     # set_plist_proc :image_path, Proc.new { |p| p.sub(Iphoto::path, '') }
     # set_plist_proc :thumb_path, Proc.new { |p| p.sub(Iphoto::path, '') }
 
-    belongs_to :roll
+    belongs_to :roll, :class_name => 'Iphoto::Roll'
     serialize :keywords
-
-    def thumb_path(append=true)
-      # if append
-      #   IphotoLibrary.server + super
-      # else
+    
+    def image_path(swap_path = false)
+      if swap_path
+        super.sub(self.roll.library.local_afs_path, self.roll.library.path)
+      else
         super
-      # end
+      end
     end
-
-    def image_path(append=true)
-      # if append
-      #   IphotoLibrary.server + super
-      # else
+    
+    def thumb_path(swap_path = false)
+      if swap_path
+        super.sub(self.roll.library.local_afs_path, self.roll.library.path)
+      else
         super
-      # end
+      end
     end
   end
 end

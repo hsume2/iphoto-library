@@ -10,12 +10,10 @@ module Iphoto
         set_table_name "iphoto_libraries"
 
         has_many :rolls, :class_name => 'Iphoto::Roll'
-        has_many :photos, :class_name => 'Iphoto::Photo'
-        has_many :movies, :class_name => 'Iphoto::Movie'
         has_many :keywords, :class_name => 'Iphoto::Keyword'
 
         include Iphoto::Library::InstanceMethods
-        extend Iphoto::Library::SingletonMethods
+        # extend Iphoto::Library::SingletonMethods
       end
     end
 

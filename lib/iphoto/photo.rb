@@ -17,7 +17,7 @@ module Iphoto
           require 'mini_magick'
         end
 
-        image = MiniMagick::Image.from_file(image_path(false))
+        image = MiniMagick::Image.from_file(image_path(true))
         image.resize dims
         image.write(output_path)
         FileUtils.chmod 0755, output_path
