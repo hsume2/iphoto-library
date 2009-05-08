@@ -1,11 +1,20 @@
 module Iphoto
   class Photo < Media
 
+    def public_path(file_name)
+      "/photos/#{self.id}/#{file_name}.jpg"
+    end
+    
+    def output_path(file_name)
+      File.join(RAILS_ROOT, "public", "photos", self.id.to_s, "#{file_name}.jpg")
+    end
+
+    # TODO add thumbnail generator worker
     def on_demand(width, height)
       dims = "#{width}x#{height}"
 
-      public_path = "/photos/#{self.id}/#{dims}.jpg"
-      output_path = File.join(RAILS_ROOT, "public", "photos", self.id.to_s, "#{dims}.jpg")
+      public_path = self.public_path(dims)
+      output_path = self.output_path(dims)
 
       if File.exists?(output_path)
         logger.info "[iphoto library] Thumbnail hit at #{public_path}"

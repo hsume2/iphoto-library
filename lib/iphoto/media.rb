@@ -15,7 +15,7 @@ module Iphoto
     
     def image_path(swap_path = false)
       if swap_path
-        super.sub(self.roll.library.local_afs_path, self.roll.library.path)
+        self.roll.library.swap(super)
       else
         super
       end
@@ -23,7 +23,7 @@ module Iphoto
     
     def thumb_path(swap_path = false)
       if swap_path
-        super.sub(self.roll.library.local_afs_path, self.roll.library.path)
+        self.roll.library.swap(super)
       else
         super
       end
