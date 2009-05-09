@@ -1,3 +1,4 @@
+= DOCUMENTATION OUTDATED
 = iPhoto Library
 This plugin provides a way to use iPhoto to manage photos and videos for your Rails application.
 
